@@ -9,13 +9,13 @@
 
   <p>
     <a href="https://expo.dev">
-      <img src="https://img.shields.io/badge/Expo-50+-000.svg?style=flat-square&logo=expo&logoColor=white" alt="Expo" />
+      <img src="https://img.shields.io/badge/Expo-50%2B-000.svg?style=flat-square&logo=expo&logoColor=white" alt="Expo" />
     </a>
     <a href="https://reactnative.dev">
-      <img src="https://img.shields.io/badge/React_Native-0.73+-61DAFB.svg?style=flat-square&logo=react&logoColor=black" alt="React Native" />
+      <img src="https://img.shields.io/badge/React_Native-0.73%2B-61DAFB.svg?style=flat-square&logo=react&logoColor=black" alt="React Native" />
     </a>
     <a href="https://www.typescriptlang.org">
-      <img src="https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+      <img src="https://img.shields.io/badge/TypeScript-5.0%2B-3178C6.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
     </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
@@ -53,7 +53,7 @@ Unlike bloated aggregators, FeedStack keeps it simple: discover, read, and save 
 
 We follow a clean, opinionated `src/` directory structure to keep the codebase scalable.
 
-```
+```text
 /
 ├── src/
 │   ├── api/             # API clients and endpoints (NewsAPI, etc.)
