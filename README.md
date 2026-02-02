@@ -1,26 +1,16 @@
 <div align="center">
-  <img src="./assets/images/icon.png" alt="FeedStack Logo" width="120" height="120" />
-  
-  <h1>FeedStack</h1>
 
-  <p>
-    <strong>A lightweight, opinionated RSS & article reader built for speed and simplicity.</strong>
-  </p>
+![FeedStack Logo](./assets/images/splash.png)
 
-  <p>
-    <a href="https://expo.dev">
-      <img src="https://img.shields.io/badge/Expo-50%2B-000.svg?style=flat-square&logo=expo&logoColor=white" alt="Expo" />
-    </a>
-    <a href="https://reactnative.dev">
-      <img src="https://img.shields.io/badge/React_Native-0.73%2B-61DAFB.svg?style=flat-square&logo=react&logoColor=black" alt="React Native" />
-    </a>
-    <a href="https://www.typescriptlang.org">
-      <img src="https://img.shields.io/badge/TypeScript-5.0%2B-3178C6.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-    </a>
-    <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
-    </a>
-  </p>
+# FeedStack
+
+**A lightweight, opinionated RSS & article reader built for speed and simplicity.**
+
+[![Expo](https://img.shields.io/badge/Expo-50%2B-000.svg?style=flat-square&logo=expo&logoColor=white)](https://expo.dev)
+[![React Native](https://img.shields.io/badge/React_Native-0.73%2B-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://reactnative.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
 </div>
 
 <br />
@@ -42,13 +32,11 @@ Unlike bloated aggregators, FeedStack keeps it simple: discover, read, and save 
 
 ## 📸 Screenshots
 
-<div align="center">
-  <img src="screenshots/XRecorder_Edited_20260202_01.jpg" width="30%" />
-  <img src="screenshots/XRecorder_Edited_20260202_02.jpg" width="30%" />
-  <img src="screenshots/XRecorder_Edited_20260202_03.jpg" width="30%" />
-</div>
+![Screenshot 1](screenshots/screenshot1.jpg)
+![Screenshot 2](screenshots/screenshot2.jpg)
+![Screenshot 3](screenshots/screenshot3.jpg)
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Core**: [React Native](https://reactnative.dev/), [Expo](https://expo.dev/), [TypeScript](https://www.typescriptlang.org/)
 - **Routing**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based routing)

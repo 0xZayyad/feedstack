@@ -17,7 +17,8 @@
         "backgroundImage": "./assets/images/icon.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mz0x0100.feedstack"
     },
     "web": {
       "output": "static",
@@ -49,6 +50,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4c7b8af8-d246-43db-9cff-b3b5fdac28f6"
+      }
     }
   }
 }
