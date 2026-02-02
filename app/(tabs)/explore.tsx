@@ -1,112 +1,497 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import Article from "@/components/Article";
+import { ArticleSkeleton } from "@/components/ArticleSkeleton";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { ArticleType, NewsApi } from "@/misc/utils";
+import { articleCache, cache, type CachedData } from "@/utils/cache";
+import { preferencesStorage } from "@/utils/storage";
+import { MaterialIcons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+const AnimatedView = Animated.createAnimatedComponent(View);
 
-export default function TabTwoScreen() {
+const languages = [
+  { label: "🇬🇧 English", value: "en" },
+  { label: "🇫🇷 French", value: "fr" },
+  { label: "🇪🇸 Spanish", value: "es" },
+  { label: "🇩🇪 German", value: "de" },
+  { label: "🇮🇹 Italian", value: "it" },
+  { label: "🇵🇹 Portuguese", value: "pt" },
+];
+
+const sortOptions = [
+  { label: "🔍 Relevancy", value: "relevancy" },
+  { label: "🔥 Popularity", value: "popularity" },
+  { label: "📅 Published Date", value: "publishedAt" },
+];
+
+export default function ExploreScreen() {
+  const [articles, setArticles] = useState<ArticleType[] | null>(null);
+  const [query, setQuery] = useState<string>("latest tech trends");
+  const [language, setLanguage] = useState<string>("en");
+  const [sortBy, setSortBy] = useState<"relevancy" | "popularity" | "publishedAt">("relevancy");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  const isDark = colorScheme === "dark";
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      const defaultLanguage = await preferencesStorage.getDefaultLanguage();
+      const defaultSortBy = await preferencesStorage.getDefaultSortBy();
+      if (defaultLanguage) setLanguage(defaultLanguage);
+      if (defaultSortBy) setSortBy(defaultSortBy as "relevancy" | "popularity" | "publishedAt");
+    };
+    loadPreferences();
+  }, []);
+
+  // Clear expired cache on mount
+  useEffect(() => {
+    cache.clearExpired();
+  }, []);
+
+  const fetchArticles = useCallback(
+    async (isRefresh = false, searchQuery?: string) => {
+      const searchTerm = searchQuery !== undefined ? searchQuery : query;
+      if (!searchTerm.trim()) {
+        setArticles([]);
+        return;
+      }
+
+      // If not refreshing, try to load from cache first
+      if (!isRefresh && !isInitialLoad) {
+        const cachedArticles = await articleCache.getSearch(searchTerm, language, sortBy);
+        if (cachedArticles && cachedArticles.length > 0) {
+          setArticles(cachedArticles);
+          // Get cache timestamp
+          const key = articleCache.generateKey('search', { query: searchTerm, language, sortBy });
+          const cachedData = await cache.get<CachedData<ArticleType[]>>(key);
+          if (cachedData) {
+            setLastUpdated(cachedData.timestamp);
+          }
+        }
+      }
+
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const response = await NewsApi.everything({
+          q: searchTerm,
+          language: language,
+          sortBy: sortBy,
+        });
+        const fetchedArticles = response.data.articles || [];
+        setArticles(fetchedArticles);
+        
+        // Cache the articles
+        await articleCache.cacheSearch(searchTerm, language, sortBy, fetchedArticles);
+        const timestamp = Date.now();
+        setLastUpdated(timestamp);
+        
+        // Save preferences
+        await preferencesStorage.setDefaultLanguage(language);
+        await preferencesStorage.setDefaultSortBy(sortBy);
+      } catch (err: any) {
+        setError(
+          err?.response?.data?.message ||
+            "Failed to search articles. Please try again."
+        );
+        // Keep cached articles if available on error
+        if (!articles) {
+          setArticles([]);
+        }
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+        setIsInitialLoad(false);
+      }
+    },
+    [query, language, sortBy, isInitialLoad, articles]
+  );
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      fetchArticles();
+    }
+  }, [language, sortBy]);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      if (query.trim()) {
+        fetchArticles(false, query);
+      }
+    }, 500);
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [query]);
+
+  useEffect(() => {
+    const filters = [];
+    if (query) filters.push(`Search: "${query}"`);
+    if (language !== "en") filters.push(`Language: ${languages.find(l => l.value === language)?.label}`);
+    if (sortBy !== "relevancy") filters.push(`Sort: ${sortOptions.find(s => s.value === sortBy)?.label}`);
+    setActiveFilters(filters);
+  }, [query, language, sortBy]);
+
+  const onRefresh = useCallback(() => {
+    fetchArticles(true);
+  }, [fetchArticles]);
+
+  const clearFilters = () => {
+    setQuery("");
+    setLanguage("en");
+    setSortBy("relevancy");
+  };
+
+  const formatLastUpdated = (timestamp: number): string => {
+    const now = Date.now();
+    const diffInSeconds = Math.floor((now - timestamp) / 1000);
+    
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  };
+
+  const renderArticle = ({ item, index }: { item: ArticleType; index: number }) => (
+    <AnimatedView entering={FadeInDown.delay(index * 50)}>
+      <Article {...item} />
+    </AnimatedView>
+  );
+
+  const renderEmpty = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          {[...Array(3)].map((_, i) => (
+            <ArticleSkeleton key={i} />
+          ))}
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <AnimatedView
+          entering={FadeIn}
+          style={[styles.emptyState, { backgroundColor: colors.background }]}
+        >
+          <MaterialIcons
+            name="error-outline"
+            size={64}
+            color={isDark ? "#9BA1A6" : "#687076"}
+          />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            Oops! Something went wrong
+          </Text>
+          <Text style={[styles.emptyText, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
+            {error}
+          </Text>
+          <Button title="Try Again" onPress={() => fetchArticles()} />
+        </AnimatedView>
+      );
+    }
+
+    if (!query.trim()) {
+      return (
+        <AnimatedView
+          entering={FadeIn}
+          style={[styles.emptyState, { backgroundColor: colors.background }]}
+        >
+          <MaterialIcons
+            name="search"
+            size={64}
+            color={isDark ? "#9BA1A6" : "#687076"}
+          />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            Start Exploring
+          </Text>
+          <Text style={[styles.emptyText, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
+            Enter a search query to find articles
+          </Text>
+        </AnimatedView>
+      );
+    }
+
+    return (
+      <AnimatedView
+        entering={FadeIn}
+        style={[styles.emptyState, { backgroundColor: colors.background }]}
+      >
+        <MaterialIcons
+          name="article"
+          size={64}
+          color={isDark ? "#9BA1A6" : "#687076"}
+        />
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>
+          No articles found
+        </Text>
+        <Text style={[styles.emptyText, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
+          Try a different search query or adjust your filters
+        </Text>
+      </AnimatedView>
+    );
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <SafeAreaView style={{flex: 1}}>
+    <View style={[{ backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: isDark ? "#1F2937" : "#fff",
+            borderBottomColor: isDark ? "#374151" : "#E5E7EB",
+          },
+        ]}
+      >
+        <View style={styles.headerRow}>
+          <View style={styles.titleContainer}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Explore
+            </Text>
+            {lastUpdated && (
+              <Text style={[styles.lastUpdated, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
+                Updated {formatLastUpdated(lastUpdated)}
+              </Text>
+            )}
+          </View>
+          <Button
+            title={showFilters ? "Hide Filters" : "Filters"}
+            variant="outline"
+            size="sm"
+            onPress={() => setShowFilters(!showFilters)}
+          />
+        </View>
+
+        <View style={styles.searchContainer}>
+          <Input
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search articles..."
+            style={styles.searchInput}
+          />
+          {query.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setQuery("")}
+              style={styles.clearButton}
+            >
+              <MaterialIcons
+                name="clear"
+                size={20}
+                color={isDark ? "#9BA1A6" : "#687076"}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {activeFilters.length > 0 && (
+          <View style={styles.filtersChips}>
+            {activeFilters.map((filter, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.filterChip,
+                  { backgroundColor: isDark ? "#374151" : "#E5E7EB" },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    { color: isDark ? "#D1D5DB" : "#374151" },
+                  ]}
+                >
+                  {filter}
+                </Text>
+              </View>
+            ))}
+            <TouchableOpacity
+              onPress={clearFilters}
+              style={[
+                styles.filterChip,
+                { backgroundColor: isDark ? "#374151" : "#E5E7EB" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  { color: isDark ? "#D1D5DB" : "#374151" },
+                ]}
+              >
+                Clear all
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {showFilters && (
+          <AnimatedView entering={FadeInDown} style={styles.filtersContainer}>
+            <View style={styles.filtersRow}>
+              <View style={styles.filterHalf}>
+                <Select
+                  value={language}
+                  onValueChange={(val) => setLanguage(val)}
+                  options={languages}
+                  label="Language"
+                />
+              </View>
+              <View style={styles.filterHalf}>
+                <Select
+                  value={sortBy}
+                  onValueChange={(val) =>
+                    setSortBy(val as "relevancy" | "popularity" | "publishedAt")
+                  }
+                  options={sortOptions}
+                  label="Sort By"
+                />
+              </View>
+            </View>
+          </AnimatedView>
+        )}
+      </View>
+
+      <FlatList
+        data={articles || []}
+        renderItem={renderArticle}
+        keyExtractor={(item, index) => item.url + index}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={renderEmpty}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? "#fff" : "#0a7ea4"}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      />
+    </View></SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   titleContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  lastUpdated: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  searchContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  searchInput: {
+    marginBottom: 0,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    padding: 4,
+  },
+  filtersChips: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterChipText: {
+    fontSize: 12,
+  },
+  filtersContainer: {
+    marginTop: 12,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  filterHalf: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  emptyContainer: {
+    paddingHorizontal: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 48,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
