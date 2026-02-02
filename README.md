@@ -40,6 +40,14 @@ Unlike bloated aggregators, FeedStack keeps it simple: discover, read, and save 
 - **🎨 Modern UI**: Clean aesthetics with Dark/Light mode support.
 - **🔔 Notifications**: (Coming Soon) Stay updated with breaking news.
 
+## 📸 Screenshots
+
+<div align="center">
+  <img src="screenshots/XRecorder_Edited_20260202_01.jpg" width="30%" />
+  <img src="screenshots/XRecorder_Edited_20260202_02.jpg" width="30%" />
+  <img src="screenshots/XRecorder_Edited_20260202_03.jpg" width="30%" />
+</div>
+
 ## 🛠 Tech Stack
 
 - **Core**: [React Native](https://reactnative.dev/), [Expo](https://expo.dev/), [TypeScript](https://www.typescriptlang.org/)
