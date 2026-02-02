@@ -1,153 +1,139 @@
-<!--
-   feedstack
-   README — polished for open source
--->
+<div align="center">
+  <img src="./assets/images/icon.png" alt="FeedStack Logo" width="120" height="120" />
+  
+  <h1>FeedStack</h1>
 
-# FeedStack
+  <p>
+    <strong>A lightweight, opinionated RSS & article reader built for speed and simplicity.</strong>
+  </p>
 
-Lightweight, opinionated RSS / article feed reader built with Expo + React Native.
+  <p>
+    <a href="https://expo.dev">
+      <img src="https://img.shields.io/badge/Expo-50+-000.svg?style=flat-square&logo=expo&logoColor=white" alt="Expo" />
+    </a>
+    <a href="https://reactnative.dev">
+      <img src="https://img.shields.io/badge/React_Native-0.73+-61DAFB.svg?style=flat-square&logo=react&logoColor=black" alt="React Native" />
+    </a>
+    <a href="https://www.typescriptlang.org">
+      <img src="https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" />
+    </a>
+  </p>
+</div>
 
-[![Expo](https://img.shields.io/badge/Expo-%E2%9C%94-brightgreen)](#)
-[![Platform](https://img.shields.io/badge/Platform-Android%20|%20iOS%20|%20Web-blue)](#)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey)](#license)
+<br />
 
-Table of Contents
-- [About](#about)
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Tech stack](#tech-stack)
-- [Getting started](#getting-started)
-   - [Prerequisites](#prerequisites)
-   - [Install](#install)
-   - [Run](#run)
-- [Project structure](#project-structure)
-- [Scripts](#scripts)
-- [Contributing](#contributing)
-- [Roadmap](#roadmap)
-- [License](#license)
-- [Contact](#contact)
+## 📖 About
 
-## About
+**FeedStack** is a modern, open-source feed reader tailored for developers and power users who value a distraction-free reading experience. Built with **Expo** and the latest **React Native** capabilities, it features a clean UI, robust offline caching, and seamless cross-platform performance (iOS, Android, Web).
 
-feedstack is a small, open-source feed reader built with Expo and the new file-based router. It focuses on a clean reading experience, offline caching, and simple bookmark management.
+Unlike bloated aggregators, FeedStack keeps it simple: discover, read, and save what matters.
 
-This repository contains the app UI, minimal client-side caching, and integration points for notifications and persistence.
+## ✨ Features
 
-## Features
+- **📱 Cross-Platform**: Optimized for Android, iOS, and Web using Expo.
+- **📰 Smart Discovery**: Browse curated articles and trending feeds.
+- **⚡ Offline First**: Intelligent caching layer for reading on the go.
+- **🔖 Bookmarks**: Save articles locally for later access.
+- **🎨 Modern UI**: Clean aesthetics with Dark/Light mode support.
+- **🔔 Notifications**: (Coming Soon) Stay updated with breaking news.
 
-- Browse curated articles and feeds
-- Save/bookmark articles locally
-- Offline reading via a simple cache layer
-- Lightweight settings and theming
-- Web + mobile (Android/iOS) via Expo
+## 🛠 Tech Stack
 
-## Screenshots
+- **Core**: [React Native](https://reactnative.dev/), [Expo](https://expo.dev/), [TypeScript](https://www.typescriptlang.org/)
+- **Routing**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based routing)
+- **State/Cache**: Context API + Custom Caching Service
+- **Persistence**: `AsyncStorage`
+- **Network**: `Axios`
+- **API**: [NewsAPI](https://newsapi.org/)
 
-You can find app assets in the `assets/images` folder. Use these when adding screenshots to the store or README.
+## 📂 Project Structure
 
-![App screenshot](assets/images/icon.png)
+We follow a clean, opinionated `src/` directory structure to keep the codebase scalable.
 
-## Tech stack
+```
+/
+├── src/
+│   ├── api/             # API clients and endpoints (NewsAPI, etc.)
+│   ├── app/             # Expo Router screens (file-based routing)
+│   ├── components/      # Reusable UI components
+│   ├── constants/       # App-wide constants (Colors, Config)
+│   ├── hooks/           # Custom React hooks
+│   ├── services/        # Core business logic (Storage, Cache, Notifications)
+│   └── types/           # Global TypeScript definitions
+├── assets/              # Images, fonts, and static resources
+└── package.json         # Dependencies and scripts
+```
 
-- Expo (managed workflow)
-- React Native + React 19
-- TypeScript
-- React Navigation + expo-router
-- AsyncStorage for simple local persistence
-- Axios for network requests
+## 🚀 Getting Started
 
-## Getting started
+Follow these steps to get the app running locally.
 
 ### Prerequisites
 
-- Node.js (LTS recommended)
-- npm or yarn
-- Optionally: Android Studio (emulator) or Xcode (iOS simulator)
+- **Node.js** (LTS version recommended)
+- **npm** or **yarn**
+- **Expo Go** app on your physical device OR Android Studio / Xcode for simulators.
 
-### Install
+### Installation
 
-Clone the repo and install dependencies:
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/0xZayyad/feedstack.git
+    cd feedstack
+    ```
+
+2. **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3. **Configure Environment Variables:**
+    Create a `.env` file in the root directory:
+
+    ```bash
+    touch .env
+    ```
+
+    Add your NewsAPI key (get one [here](https://newsapi.org/)):
+
+    ```env
+    EXPO_PUBLIC_NEWS_API_KEY=your_api_key_here
+    ```
+
+### Running the App
+
+Start the development server:
 
 ```bash
-git clone https://github.com/0xZayyad/feedstack.git
-cd feedstack
-npm install
+npm start
 ```
 
-### Run
+- Press `a` to open on Android Emulator.
+- Press `i` to open on iOS Simulator.
+- Press `w` to run in the browser.
+- Scan the QR code with **Expo Go** to run on a physical device.
 
-Start the Expo dev server and open on the platform of your choice:
+## 🤝 Contributing
 
-```bash
-npm start      # opens Expo dev tools
-npm run android
-npm run ios
-npm run web
-```
+Contributions are what make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-Useful maintenance commands:
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feat/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feat/AmazingFeature`)
+5. Open a Pull Request
 
-```bash
-npm run reset-project   # resets starter template (provided by create-expo-app)
-npm run lint            # run linter
-```
+## 📄 License
 
-Notes
-- The project uses `expo-router` and the file-based `app/` directory for routing. Edit UI inside `app/` and `components/`.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-## Project structure
+## 📬 Contact
 
-Key folders/files:
+**0xZayyad** - [GitHub](https://github.com/0xZayyad)
 
-- `app/` — file-based routes and screens
-- `components/` — reusable UI components
-- `assets/` — images, fonts and other static assets
-- `constants/`, `hooks/`, `utils/`, `misc/` — helpers and app-specific utilities
-- `package.json` — scripts and dependencies
-
-## Scripts
-
-The most important npm scripts are already defined in `package.json`:
-
-- `npm start` — start Expo dev server
-- `npm run android` — open on Android device/emulator
-- `npm run ios` — open on iOS simulator
-- `npm run web` — run as web app
-- `npm run reset-project` — reset starter content (keeps example app in `app-example`)
-- `npm run lint` — run ESLint
-
-## Development notes
-
-- Styling and theming live in `components/Themed*` and `hooks/useThemeColor.ts`.
-- Local caching lives in `utils/cache.ts` and persistent storage is in `utils/storage.ts`.
-- If you integrate an external RSS or API, keep secrets out of the repo and provide them as environment variables or a secrets manager.
-
-## Contributing
-
-Contributions are welcome! A small suggested workflow:
-
-1. Fork the repository.
-2. Create a topic branch: `git checkout -b feat/your-feature`.
-3. Make changes and add tests where appropriate.
-4. Open a pull request describing the change.
-
-Please follow the existing code style. Run `npm run lint` and check the app on at least one platform before opening a PR.
-
-If you'd like to propose larger changes (architecture, feature additions), open an issue first so we can discuss scope.
-
-## Roadmap
-
-- Improve feed discovery and integration UI
-- Add user sync (optional) for bookmarks
-- Add automated tests and CI
-
-If you want to help, check the `issues` tab and pick a tagged `good first issue`.
-
-## License
-
-This project is open source and available under the MIT License — see the `LICENSE` file for details.
-
-## Contact
-
-Created and maintained by 0xZayyad — feel free to open issues or PRs.
-
+Project Link: [https://github.com/0xZayyad/feedstack](https://github.com/0xZayyad/feedstack)

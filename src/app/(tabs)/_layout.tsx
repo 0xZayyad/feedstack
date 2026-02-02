@@ -26,8 +26,8 @@ function TabBarIcon({ name, focused }: { name: string; focused: boolean }) {
               ? '#fff'
               : '#0a7ea4'
             : isDark
-            ? '#9BA1A6'
-            : '#687076'
+              ? '#9BA1A6'
+              : '#687076'
         }
       />
     </AnimatedView>

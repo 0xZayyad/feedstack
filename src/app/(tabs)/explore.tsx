@@ -1,3 +1,4 @@
+import { ArticleType, NewsApi } from "@/api/news";
 import Article from "@/components/Article";
 import { ArticleSkeleton } from "@/components/ArticleSkeleton";
 import { Button } from "@/components/ui/Button";
@@ -5,9 +6,8 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { ArticleType, NewsApi } from "@/misc/utils";
-import { articleCache, cache, type CachedData } from "@/utils/cache";
-import { preferencesStorage } from "@/utils/storage";
+import { articleCache, cache, type CachedData } from "@/services/cache";
+import { preferencesStorage } from "@/services/storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -40,7 +40,7 @@ const sortOptions = [
 
 export default function ExploreScreen() {
   const [articles, setArticles] = useState<ArticleType[] | null>(null);
-  const [query, setQuery] = useState<string>("latest tech trends");
+  const [query, setQuery] = useState<string>("");
   const [language, setLanguage] = useState<string>("en");
   const [sortBy, setSortBy] = useState<"relevancy" | "popularity" | "publishedAt">("relevancy");
   const [loading, setLoading] = useState<boolean>(false);
@@ -107,19 +107,19 @@ export default function ExploreScreen() {
         });
         const fetchedArticles = response.data.articles || [];
         setArticles(fetchedArticles);
-        
+
         // Cache the articles
         await articleCache.cacheSearch(searchTerm, language, sortBy, fetchedArticles);
         const timestamp = Date.now();
         setLastUpdated(timestamp);
-        
+
         // Save preferences
         await preferencesStorage.setDefaultLanguage(language);
         await preferencesStorage.setDefaultSortBy(sortBy);
       } catch (err: any) {
         setError(
           err?.response?.data?.message ||
-            "Failed to search articles. Please try again."
+          "Failed to search articles. Please try again."
         );
         // Keep cached articles if available on error
         if (!articles) {
@@ -180,7 +180,7 @@ export default function ExploreScreen() {
   const formatLastUpdated = (timestamp: number): string => {
     const now = Date.now();
     const diffInSeconds = Math.floor((now - timestamp) / 1000);
-    
+
     if (diffInSeconds < 60) return 'just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -268,62 +268,79 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-    <View style={[{ backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: isDark ? "#1F2937" : "#fff",
-            borderBottomColor: isDark ? "#374151" : "#E5E7EB",
-          },
-        ]}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.titleContainer}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              Explore
-            </Text>
-            {lastUpdated && (
-              <Text style={[styles.lastUpdated, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
-                Updated {formatLastUpdated(lastUpdated)}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={[{ backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: isDark ? "#1F2937" : "#fff",
+              borderBottomColor: isDark ? "#374151" : "#E5E7EB",
+            },
+          ]}
+        >
+          <View style={styles.headerRow}>
+            <View style={styles.titleContainer}>
+              <Text style={[styles.title, { color: colors.text }]}>
+                Explore
               </Text>
+              {lastUpdated && (
+                <Text style={[styles.lastUpdated, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
+                  Updated {formatLastUpdated(lastUpdated)}
+                </Text>
+              )}
+            </View>
+            <Button
+              title={showFilters ? "Hide Filters" : "Filters"}
+              variant="outline"
+              size="sm"
+              onPress={() => setShowFilters(!showFilters)}
+            />
+          </View>
+
+          <View style={styles.searchContainer}>
+            <Input
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search articles..."
+              style={styles.searchInput}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setQuery("")}
+                style={styles.clearButton}
+              >
+                <MaterialIcons
+                  name="clear"
+                  size={20}
+                  color={isDark ? "#9BA1A6" : "#687076"}
+                />
+              </TouchableOpacity>
             )}
           </View>
-          <Button
-            title={showFilters ? "Hide Filters" : "Filters"}
-            variant="outline"
-            size="sm"
-            onPress={() => setShowFilters(!showFilters)}
-          />
-        </View>
 
-        <View style={styles.searchContainer}>
-          <Input
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search articles..."
-            style={styles.searchInput}
-          />
-          {query.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setQuery("")}
-              style={styles.clearButton}
-            >
-              <MaterialIcons
-                name="clear"
-                size={20}
-                color={isDark ? "#9BA1A6" : "#687076"}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {activeFilters.length > 0 && (
-          <View style={styles.filtersChips}>
-            {activeFilters.map((filter, index) => (
-              <View
-                key={index}
+          {activeFilters.length > 0 && (
+            <View style={styles.filtersChips}>
+              {activeFilters.map((filter, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.filterChip,
+                    { backgroundColor: isDark ? "#374151" : "#E5E7EB" },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      { color: isDark ? "#D1D5DB" : "#374151" },
+                    ]}
+                  >
+                    {filter}
+                  </Text>
+                </View>
+              ))}
+              <TouchableOpacity
+                onPress={clearFilters}
                 style={[
                   styles.filterChip,
                   { backgroundColor: isDark ? "#374151" : "#E5E7EB" },
@@ -335,71 +352,54 @@ export default function ExploreScreen() {
                     { color: isDark ? "#D1D5DB" : "#374151" },
                   ]}
                 >
-                  {filter}
+                  Clear all
                 </Text>
-              </View>
-            ))}
-            <TouchableOpacity
-              onPress={clearFilters}
-              style={[
-                styles.filterChip,
-                { backgroundColor: isDark ? "#374151" : "#E5E7EB" },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  { color: isDark ? "#D1D5DB" : "#374151" },
-                ]}
-              >
-                Clear all
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {showFilters && (
-          <AnimatedView entering={FadeInDown} style={styles.filtersContainer}>
-            <View style={styles.filtersRow}>
-              <View style={styles.filterHalf}>
-                <Select
-                  value={language}
-                  onValueChange={(val) => setLanguage(val)}
-                  options={languages}
-                  label="Language"
-                />
-              </View>
-              <View style={styles.filterHalf}>
-                <Select
-                  value={sortBy}
-                  onValueChange={(val) =>
-                    setSortBy(val as "relevancy" | "popularity" | "publishedAt")
-                  }
-                  options={sortOptions}
-                  label="Sort By"
-                />
-              </View>
+              </TouchableOpacity>
             </View>
-          </AnimatedView>
-        )}
-      </View>
+          )}
 
-      <FlatList
-        data={articles || []}
-        renderItem={renderArticle}
-        keyExtractor={(item, index) => item.url + index}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={renderEmpty}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={isDark ? "#fff" : "#0a7ea4"}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
-    </View></SafeAreaView>
+          {showFilters && (
+            <AnimatedView entering={FadeInDown} style={styles.filtersContainer}>
+              <View style={styles.filtersRow}>
+                <View style={styles.filterHalf}>
+                  <Select
+                    value={language}
+                    onValueChange={(val) => setLanguage(val)}
+                    options={languages}
+                    label="Language"
+                  />
+                </View>
+                <View style={styles.filterHalf}>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(val) =>
+                      setSortBy(val as "relevancy" | "popularity" | "publishedAt")
+                    }
+                    options={sortOptions}
+                    label="Sort By"
+                  />
+                </View>
+              </View>
+            </AnimatedView>
+          )}
+        </View>
+
+        <FlatList
+          data={articles || []}
+          renderItem={renderArticle}
+          keyExtractor={(item, index) => item.url + index}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={isDark ? "#fff" : "#0a7ea4"}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      </View></SafeAreaView>
   );
 }
 

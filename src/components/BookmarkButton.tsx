@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
-import { bookmarksStorage } from '@/utils/storage';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { bookmarksStorage } from '@/services/storage';
+import { MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withSequence,
+  withSpring,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -52,7 +52,7 @@ export function BookmarkButton({
 
   const handlePress = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
+
     // Animate
     scale.value = withSequence(
       withSpring(1.3),

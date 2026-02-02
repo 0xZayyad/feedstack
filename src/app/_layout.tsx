@@ -2,13 +2,13 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { setupNotificationListeners } from '@/utils/notifications';
-import { onboardingStorage } from '@/utils/storage';
-import { StatusBar } from 'react-native';
+import { setupNotificationListeners } from '@/services/notifications';
+import { onboardingStorage } from '@/services/storage';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -24,18 +24,25 @@ export default function RootLayout() {
 
   useEffect(() => {
     const checkOnboarding = async () => {
-      const completed = await onboardingStorage.isCompleted();
-      setOnboardingChecked(true);
-      
-      if (!completed && segments[0] !== 'onboarding') {
-        router.replace('/onboarding');
+      try {
+        const completed = await onboardingStorage.isCompleted();
+
+        if (loaded) {
+          if (!completed && segments[0] !== 'onboarding') {
+            router.replace('/onboarding');
+          } else if (completed && segments[0] === 'onboarding') {
+            router.replace('/(tabs)');
+          }
+          setOnboardingChecked(true);
+          await SplashScreen.hideAsync();
+        }
+      } catch (error) {
+        console.error('Failed to check onboarding:', error);
+        setOnboardingChecked(true);
       }
     };
-    
-    if (loaded) {
-      checkOnboarding();
-      SplashScreen.hideAsync();
-    }
+
+    checkOnboarding();
   }, [loaded, segments]);
 
   // Setup notification listeners
@@ -60,7 +67,7 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar barStyle={colorScheme === "dark" ? "light-content": "dark-content"}/>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <Stack>
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -69,3 +76,4 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
+

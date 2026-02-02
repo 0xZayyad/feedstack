@@ -1,21 +1,21 @@
+import { OnboardingButton } from '@/components/onboarding/OnboardingButton';
+import { OnboardingPagination } from '@/components/onboarding/OnboardingPagination';
+import { OnboardingSlide } from '@/components/onboarding/OnboardingSlide';
+import { Select } from '@/components/ui/Select';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { requestPermissions } from '@/services/notifications';
+import { onboardingStorage, preferencesStorage } from '@/services/storage';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  StyleSheet,
-  ScrollView,
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
-import { OnboardingSlide } from '@/components/onboarding/OnboardingSlide';
-import { OnboardingButton } from '@/components/onboarding/OnboardingButton';
-import { OnboardingPagination } from '@/components/onboarding/OnboardingPagination';
-import { Select } from '@/components/ui/Select';
-import { onboardingStorage, preferencesStorage } from '@/utils/storage';
-import { requestPermissions } from '@/utils/notifications';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');

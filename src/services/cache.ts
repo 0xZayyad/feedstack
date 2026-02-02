@@ -1,5 +1,5 @@
+import { ArticleType } from '@/api/news';
 import { storage, StorageKeys } from './storage';
-import { ArticleType } from '@/misc/utils';
 
 export interface CachedData<T> {
   data: T;

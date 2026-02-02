@@ -1,3 +1,4 @@
+import { ArticleType, Category, Country, NewsApi } from "@/api/news";
 import Article from "@/components/Article";
 import { ArticleSkeleton } from "@/components/ArticleSkeleton";
 import { Button } from "@/components/ui/Button";
@@ -5,9 +6,8 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { ArticleType, Category, Country, NewsApi } from "@/misc/utils";
-import { articleCache, cache } from "@/utils/cache";
-import { preferencesStorage } from "@/utils/storage";
+import { articleCache, cache } from "@/services/cache";
+import { preferencesStorage } from "@/services/storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -113,19 +113,19 @@ export default function HomeScreen() {
       });
       const fetchedArticles = response.data.articles || [];
       setArticles(fetchedArticles);
-      
+
       // Cache the articles
       await articleCache.cacheTopHeadlines(country, category, query, fetchedArticles);
       const timestamp = Date.now();
       setLastUpdated(timestamp);
-      
+
       // Save preferences
       await preferencesStorage.setDefaultCountry(country);
       await preferencesStorage.setDefaultCategory(category);
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
-          "Failed to load articles. Please try again."
+        "Failed to load articles. Please try again."
       );
       // Keep cached articles if available on error
       if (!articles) {
@@ -155,7 +155,7 @@ export default function HomeScreen() {
   const formatLastUpdated = (timestamp: number): string => {
     const now = Date.now();
     const diffInSeconds = Math.floor((now - timestamp) / 1000);
-    
+
     if (diffInSeconds < 60) return 'just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -222,87 +222,87 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-    <View style={[{ backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: isDark ? "#1F2937" : "#fff",
-            borderBottomColor: isDark ? "#374151" : "#E5E7EB",
-          },
-        ]}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.titleContainer}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              FeedStack
-            </Text>
-            {lastUpdated && (
-              <Text style={[styles.lastUpdated, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
-                Updated {formatLastUpdated(lastUpdated)}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={[{ backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: isDark ? "#1F2937" : "#fff",
+              borderBottomColor: isDark ? "#374151" : "#E5E7EB",
+            },
+          ]}
+        >
+          <View style={styles.headerRow}>
+            <View style={styles.titleContainer}>
+              <Text style={[styles.title, { color: colors.text }]}>
+                FeedStack
               </Text>
-            )}
-          </View>
-          <Button
-            title={showFilters ? "Hide Filters" : "Filters"}
-            variant="outline"
-            size="sm"
-            onPress={() => setShowFilters(!showFilters)}
-          />
-        </View>
-
-        {showFilters && (
-          <AnimatedView entering={FadeInDown} style={styles.filtersContainer}>
-            <Input
-              value={query}
-              onChangeText={setQuery}
-              placeholder="Search articles..."
-              label="Search"
-            />
-            <View style={styles.filtersRow}>
-              <View style={styles.filterHalf}>
-                <Select
-                  value={country}
-                  onValueChange={setCountry}
-                  options={countries}
-                  label="Country"
-                />
-              </View>
-              <View style={styles.filterHalf}>
-                <Select
-                  value={category}
-                  onValueChange={setCategory}
-                  options={categories}
-                  label="Category"
-                />
-              </View>
+              {lastUpdated && (
+                <Text style={[styles.lastUpdated, { color: isDark ? "#9BA1A6" : "#6B7280" }]}>
+                  Updated {formatLastUpdated(lastUpdated)}
+                </Text>
+              )}
             </View>
             <Button
-              title="Apply Filters"
-              onPress={handleSearch}
-              style={styles.applyButton}
+              title={showFilters ? "Hide Filters" : "Filters"}
+              variant="outline"
+              size="sm"
+              onPress={() => setShowFilters(!showFilters)}
             />
-          </AnimatedView>
-        )}
-      </View>
+          </View>
 
-      <FlatList
-        data={articles || []}
-        renderItem={renderArticle}
-        keyExtractor={(item, index) => item.url + index}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={renderEmpty}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={isDark ? "#fff" : "#0a7ea4"}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
-    </View></SafeAreaView>
+          {showFilters && (
+            <AnimatedView entering={FadeInDown} style={styles.filtersContainer}>
+              <Input
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search articles..."
+                label="Search"
+              />
+              <View style={styles.filtersRow}>
+                <View style={styles.filterHalf}>
+                  <Select
+                    value={country}
+                    onValueChange={setCountry}
+                    options={countries}
+                    label="Country"
+                  />
+                </View>
+                <View style={styles.filterHalf}>
+                  <Select
+                    value={category}
+                    onValueChange={setCategory}
+                    options={categories}
+                    label="Category"
+                  />
+                </View>
+              </View>
+              <Button
+                title="Apply Filters"
+                onPress={handleSearch}
+                style={styles.applyButton}
+              />
+            </AnimatedView>
+          )}
+        </View>
+
+        <FlatList
+          data={articles || []}
+          renderItem={renderArticle}
+          keyExtractor={(item, index) => item.url + index}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={isDark ? "#fff" : "#0a7ea4"}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      </View></SafeAreaView>
   );
 }
 

@@ -1,29 +1,29 @@
+import { SectionHeader } from "@/components/settings/SectionHeader";
+import { SettingItem } from "@/components/settings/SettingItem";
+import { ToggleSwitch } from "@/components/settings/ToggleSwitch";
+import { Button } from "@/components/ui/Button";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { cache } from "@/services/cache";
+import { sendTestNotification } from "@/services/notifications";
+import {
+  onboardingStorage,
+  preferencesStorage,
+  settingsStorage,
+  storage,
+} from "@/services/storage";
+import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
   View,
-  Alert,
-  Linking,
 } from "react-native";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
-import { SettingItem } from "@/components/settings/SettingItem";
-import { SectionHeader } from "@/components/settings/SectionHeader";
-import { ToggleSwitch } from "@/components/settings/ToggleSwitch";
-import { Button } from "@/components/ui/Button";
-import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  settingsStorage,
-  preferencesStorage,
-  storage,
-  onboardingStorage,
-} from "@/utils/storage";
-import { cache } from "@/utils/cache";
-import Constants from "expo-constants";
-import { useRouter } from "expo-router";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
@@ -96,7 +96,7 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             await preferencesStorage.savePreferences({});
-            await settingsStorage.setDarkMode(null);
+            await settingsStorage.setDarkMode(false);
             Alert.alert("Success", "Preferences reset to defaults");
             loadSettings();
           },
@@ -148,8 +148,8 @@ export default function SettingsScreen() {
               darkModeOverride === null
                 ? "Follow system"
                 : darkModeOverride
-                ? "Enabled"
-                : "Disabled"
+                  ? "Enabled"
+                  : "Disabled"
             }
             rightElement={
               <ToggleSwitch
@@ -258,7 +258,7 @@ export default function SettingsScreen() {
             title="Source Code"
             subtitle="View on GitHub"
             onPress={() => {
-              Linking.openURL("https://github.com");
+              Linking.openURL("https://github.com/0xZayyad/feedstack");
             }}
           />
           <SettingItem

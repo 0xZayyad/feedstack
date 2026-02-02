@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useCallback } from "react";
+import Article from "@/components/Article";
+import { ArticleSkeleton } from "@/components/ArticleSkeleton";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { bookmarksStorage, type Bookmark } from "@/services/storage";
+import { MaterialIcons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   RefreshControl,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
-import { bookmarksStorage, type Bookmark } from "@/utils/storage";
-import Article from "@/components/Article";
-import { ArticleSkeleton } from "@/components/ArticleSkeleton";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
